@@ -1,0 +1,39 @@
+{{- if .Values.metrics.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mc-controller.fullname" . }}-controller-manager-metrics-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    control-plane: controller-manager
+    {{- include "mc-controller.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: metrics
+  selector:
+    control-plane: controller-manager
+    {{- include "mc-controller.selectorLabels" . | nindent 4 }}
+{{- end }}
+
+{{- if .Values.webhook.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mc-controller.fullname" . }}-webhook-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mc-controller.labels" . | nindent 4 }}
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: webhook-server
+    name: webhook
+  selector:
+    control-plane: controller-manager
+    {{- include "mc-controller.selectorLabels" . | nindent 4 }}
+{{- end }}

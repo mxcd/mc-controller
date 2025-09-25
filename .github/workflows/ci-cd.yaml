@@ -47,6 +47,36 @@ jobs:
         make generate manifests
         git diff --exit-code || (echo "Generated files are not up to date. Please run 'make generate manifests' and commit the changes." && exit 1)
 
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Create Kind cluster
+      uses: helm/kind-action@v1
+      with:
+        cluster_name: mc-controller-e2e
+        kubectl_version: v1.28.0
+
+    - name: Install kubebuilder
+      run: |
+        curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.14.0/kubebuilder_linux_amd64
+        chmod +x kubebuilder
+        sudo mv kubebuilder /usr/local/bin/
+
+    - name: Run E2E tests
+      run: |
+        make test-e2e
+      env:
+        USE_EXISTING_CLUSTER: true
+
   security:
     runs-on: ubuntu-latest
     needs: test
@@ -75,7 +105,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, e2e-test]
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
       image-url: ${{ steps.build.outputs.image-url }}
@@ -120,9 +150,54 @@ jobs:
         cache-to: type=gha,mode=max
         outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push=true
 
+  helm-chart:
+    runs-on: ubuntu-latest
+    needs: [test, e2e-test, security, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: '3.14.0'
+
+    - name: Package Helm chart
+      run: |
+        # Update chart version to match release tag
+        export CHART_VERSION="${{ github.ref_name }}"
+        export APP_VERSION="${{ github.ref_name }}"
+        
+        # Remove 'v' prefix if present
+        CHART_VERSION=${CHART_VERSION#v}
+        APP_VERSION=${APP_VERSION#v}
+        
+        # Update Chart.yaml
+        sed -i "s/version: .*/version: ${CHART_VERSION}/" charts/mc-controller/Chart.yaml
+        sed -i "s/appVersion: .*/appVersion: \"${APP_VERSION}\"/" charts/mc-controller/Chart.yaml
+        
+        # Package the chart
+        helm package charts/mc-controller --destination ./helm-charts/
+        
+        # Create index
+        helm repo index ./helm-charts/ --url https://github.com/mxcd/mc-controller/releases/download/${{ github.ref_name }}/
+
+    - name: Upload Helm chart to release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          helm-charts/*.tgz
+          helm-charts/index.yaml
+        tag_name: ${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release:
     runs-on: ubuntu-latest
-    needs: [test, security, build]
+    needs: [test, e2e-test, security, build, helm-chart]
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
     - name: Checkout code
