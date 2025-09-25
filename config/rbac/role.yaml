@@ -15,6 +15,32 @@ rules:
 - apiGroups:
   - minio.mxcd.dev
   resources:
+  - aliases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - aliases/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - aliases/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
   - buckets
   verbs:
   - create

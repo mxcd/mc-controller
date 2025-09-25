@@ -8,20 +8,45 @@ mc-controller is a Kubernetes operator built with Kubebuilder that provides decl
 
 ## Features
 
+- **Alias Management**: Centralized MinIO connection configuration similar to `mc alias` 
 - **Bucket Management**: Create and manage MinIO buckets with versioning, object locking, notifications, and quotas
 - **User Management**: Manage MinIO users with password rotation and group memberships
 - **Policy Management**: Define and attach IAM policies for access control
 - **Lifecycle Policies**: Configure automatic object expiration and storage class transitions
-- **Endpoint Management**: Manage MinIO server connections with health checks
+- **Endpoint Management**: Manage MinIO server connections with health checks (deprecated, use Alias)
 - **Policy Attachments**: Attach policies to users, groups, or service accounts
 - **Idempotent Operations**: Safely reconcile desired state with actual MinIO configuration
 - **Finalizers**: Proper cleanup of resources when deleted from Kubernetes
 
 ## Custom Resource Definitions
 
+### Alias
+
+Centralized MinIO connection configuration (recommended approach):
+
+```yaml
+apiVersion: minio.mxcd.dev/v1alpha1
+kind: Alias
+metadata:
+  name: minio-production
+spec:
+  url: "https://minio.example.com"
+  secretRef:
+    name: minio-admin-credentials
+    accessKeyIDKey: "accessKeyID"
+    secretAccessKeyKey: "secretAccessKey"
+  tls:
+    insecure: false
+  healthCheck:
+    enabled: true
+    intervalSeconds: 300
+  region: "us-east-1"
+  description: "Production MinIO instance"
+```
+
 ### Endpoint
 
-Defines connection details to a MinIO server:
+Defines connection details to a MinIO server (deprecated, use Alias):
 
 ```yaml
 apiVersion: minio.mxcd.dev/v1alpha1
@@ -53,10 +78,8 @@ metadata:
   name: data-bucket
 spec:
   connection:
-    endpointRef:
+    aliasRef:
       name: minio-production
-    secretRef:
-      name: minio-credentials
   bucketName: "application-data"
   versioning: true
   objectLocking: false

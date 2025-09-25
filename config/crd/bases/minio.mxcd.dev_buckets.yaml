@@ -60,9 +60,22 @@ spec:
               connection:
                 description: Connection defines connection details to MinIO
                 properties:
+                  aliasRef:
+                    description: AliasRef references an Alias resource for connection
+                      details
+                    properties:
+                      name:
+                        description: Name is the name of the Alias resource
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the Alias resource
+                        type: string
+                    required:
+                    - name
+                    type: object
                   endpointRef:
                     description: EndpointRef references an Endpoint resource for connection
-                      details
+                      details (deprecated, use aliasRef)
                     properties:
                       name:
                         description: Name is the name of the Endpoint resource
@@ -75,7 +88,7 @@ spec:
                     type: object
                   secretRef:
                     description: SecretRef contains credentials for connecting to
-                      MinIO
+                      MinIO (only used with URL)
                     properties:
                       accessKeyIDKey:
                         description: AccessKeyIDKey is the key in the secret containing
@@ -95,7 +108,7 @@ spec:
                     - name
                     type: object
                   tls:
-                    description: TLS configuration
+                    description: TLS configuration (only used with URL)
                     properties:
                       caBundle:
                         description: CABundle is a PEM encoded CA bundle which will
@@ -108,10 +121,8 @@ spec:
                         type: boolean
                     type: object
                   url:
-                    description: URL is the MinIO server URL (alternative to EndpointRef)
+                    description: URL is the MinIO server URL (alternative to AliasRef/EndpointRef)
                     type: string
-                required:
-                - secretRef
                 type: object
               notification:
                 description: Notification defines event notification configuration

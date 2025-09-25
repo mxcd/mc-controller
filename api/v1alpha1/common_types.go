@@ -22,17 +22,27 @@ import (
 
 // MinIOConnection defines connection details to a MinIO instance
 type MinIOConnection struct {
-	// EndpointRef references an Endpoint resource for connection details
+	// AliasRef references an Alias resource for connection details
+	AliasRef *AliasReference `json:"aliasRef,omitempty"`
+	// EndpointRef references an Endpoint resource for connection details (deprecated, use aliasRef)
 	EndpointRef *EndpointReference `json:"endpointRef,omitempty"`
-	// URL is the MinIO server URL (alternative to EndpointRef)
+	// URL is the MinIO server URL (alternative to AliasRef/EndpointRef)
 	URL *string `json:"url,omitempty"`
-	// SecretRef contains credentials for connecting to MinIO
-	SecretRef SecretReference `json:"secretRef"`
-	// TLS configuration
+	// SecretRef contains credentials for connecting to MinIO (only used with URL)
+	SecretRef *SecretReference `json:"secretRef,omitempty"`
+	// TLS configuration (only used with URL)
 	TLS *TLSConfig `json:"tls,omitempty"`
 }
 
-// EndpointReference references an Endpoint resource
+// AliasReference references an Alias resource
+type AliasReference struct {
+	// Name is the name of the Alias resource
+	Name string `json:"name"`
+	// Namespace is the namespace of the Alias resource
+	Namespace *string `json:"namespace,omitempty"`
+}
+
+// EndpointReference references an Endpoint resource (deprecated)
 type EndpointReference struct {
 	// Name is the name of the Endpoint resource
 	Name string `json:"name"`

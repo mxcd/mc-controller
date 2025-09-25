@@ -10,12 +10,8 @@ metadata:
   name: bucket-sample
 spec:
   connection:
-    endpointRef:
-      name: endpoint-sample
-    secretRef:
-      name: minio-credentials
-      accessKeyIDKey: "accessKeyID"
-      secretAccessKeyKey: "secretAccessKey"
+    aliasRef:
+      name: minio-dev
   bucketName: "my-sample-bucket"
   region: "us-east-1"
   objectLocking: false

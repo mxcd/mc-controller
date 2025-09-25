@@ -104,8 +104,77 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 		PathStyle: false,
 	}
 
-	// Get endpoint URL
-	if conn.URL != nil {
+	// Get endpoint URL - prioritize AliasRef over EndpointRef
+	if conn.AliasRef != nil {
+		alias := &miniov1alpha1.Alias{}
+		aliasNamespace := defaultNamespace
+		if conn.AliasRef.Namespace != nil {
+			aliasNamespace = *conn.AliasRef.Namespace
+		}
+
+		err := k8sClient.Get(ctx, client.ObjectKey{
+			Name:      conn.AliasRef.Name,
+			Namespace: aliasNamespace,
+		}, alias)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alias %s/%s: %w", aliasNamespace, conn.AliasRef.Name, err)
+		}
+
+		if !alias.Status.Ready {
+			return nil, fmt.Errorf("alias %s/%s is not ready", aliasNamespace, conn.AliasRef.Name)
+		}
+
+		config.Endpoint = alias.Spec.URL
+		if alias.Spec.PathStyle {
+			config.PathStyle = true
+		}
+		if alias.Spec.Region != nil {
+			config.Region = *alias.Spec.Region
+		}
+
+		// Use TLS config from alias if specified
+		if alias.Spec.TLS != nil {
+			config.Insecure = alias.Spec.TLS.Insecure
+		}
+
+		// Get credentials from alias secret
+		secretNamespace := aliasNamespace
+		if alias.Spec.SecretRef.Namespace != nil {
+			secretNamespace = *alias.Spec.SecretRef.Namespace
+		}
+
+		secret := &corev1.Secret{}
+		err = k8sClient.Get(ctx, client.ObjectKey{
+			Name:      alias.Spec.SecretRef.Name,
+			Namespace: secretNamespace,
+		}, secret)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alias secret %s/%s: %w", secretNamespace, alias.Spec.SecretRef.Name, err)
+		}
+
+		// Get access key ID
+		accessKeyIDKey := alias.Spec.SecretRef.AccessKeyIDKey
+		if accessKeyIDKey == "" {
+			accessKeyIDKey = "accessKeyID"
+		}
+		accessKeyIDBytes, ok := secret.Data[accessKeyIDKey]
+		if !ok {
+			return nil, fmt.Errorf("access key ID not found in alias secret %s/%s with key %s", secretNamespace, alias.Spec.SecretRef.Name, accessKeyIDKey)
+		}
+		config.AccessKeyID = string(accessKeyIDBytes)
+
+		// Get secret access key
+		secretAccessKeyKey := alias.Spec.SecretRef.SecretAccessKeyKey
+		if secretAccessKeyKey == "" {
+			secretAccessKeyKey = "secretAccessKey"
+		}
+		secretAccessKeyBytes, ok := secret.Data[secretAccessKeyKey]
+		if !ok {
+			return nil, fmt.Errorf("secret access key not found in alias secret %s/%s with key %s", secretNamespace, alias.Spec.SecretRef.Name, secretAccessKeyKey)
+		}
+		config.SecretAccessKey = string(secretAccessKeyBytes)
+
+	} else if conn.URL != nil {
 		config.Endpoint = *conn.URL
 	} else if conn.EndpointRef != nil {
 		endpoint := &miniov1alpha1.Endpoint{}
@@ -138,50 +207,91 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 		if endpoint.Spec.TLS != nil {
 			config.Insecure = endpoint.Spec.TLS.Insecure
 		}
+
+		// Get credentials from endpoint secret
+		secretNamespace := endpointNamespace
+		if endpoint.Spec.SecretRef.Namespace != nil {
+			secretNamespace = *endpoint.Spec.SecretRef.Namespace
+		}
+
+		secret := &corev1.Secret{}
+		err = k8sClient.Get(ctx, client.ObjectKey{
+			Name:      endpoint.Spec.SecretRef.Name,
+			Namespace: secretNamespace,
+		}, secret)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get endpoint secret %s/%s: %w", secretNamespace, endpoint.Spec.SecretRef.Name, err)
+		}
+
+		// Get access key ID
+		accessKeyIDKey := endpoint.Spec.SecretRef.AccessKeyIDKey
+		if accessKeyIDKey == "" {
+			accessKeyIDKey = "accessKeyID"
+		}
+		accessKeyIDBytes, ok := secret.Data[accessKeyIDKey]
+		if !ok {
+			return nil, fmt.Errorf("access key ID not found in endpoint secret %s/%s with key %s", secretNamespace, endpoint.Spec.SecretRef.Name, accessKeyIDKey)
+		}
+		config.AccessKeyID = string(accessKeyIDBytes)
+
+		// Get secret access key
+		secretAccessKeyKey := endpoint.Spec.SecretRef.SecretAccessKeyKey
+		if secretAccessKeyKey == "" {
+			secretAccessKeyKey = "secretAccessKey"
+		}
+		secretAccessKeyBytes, ok := secret.Data[secretAccessKeyKey]
+		if !ok {
+			return nil, fmt.Errorf("secret access key not found in endpoint secret %s/%s with key %s", secretNamespace, endpoint.Spec.SecretRef.Name, secretAccessKeyKey)
+		}
+		config.SecretAccessKey = string(secretAccessKeyBytes)
+
 	} else {
-		return nil, fmt.Errorf("either URL or EndpointRef must be specified")
+		return nil, fmt.Errorf("either AliasRef, URL, or EndpointRef must be specified")
 	}
 
-	// Get credentials from secret
-	secretNamespace := defaultNamespace
-	if conn.SecretRef.Namespace != nil {
-		secretNamespace = *conn.SecretRef.Namespace
-	}
+	// Handle credentials when using URL directly (not with AliasRef which handles its own credentials)
+	if conn.URL != nil && conn.SecretRef != nil {
+		// Get credentials from secret
+		secretNamespace := defaultNamespace
+		if conn.SecretRef.Namespace != nil {
+			secretNamespace = *conn.SecretRef.Namespace
+		}
 
-	secret := &corev1.Secret{}
-	err := k8sClient.Get(ctx, client.ObjectKey{
-		Name:      conn.SecretRef.Name,
-		Namespace: secretNamespace,
-	}, secret)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get secret %s/%s: %w", secretNamespace, conn.SecretRef.Name, err)
-	}
+		secret := &corev1.Secret{}
+		err := k8sClient.Get(ctx, client.ObjectKey{
+			Name:      conn.SecretRef.Name,
+			Namespace: secretNamespace,
+		}, secret)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get secret %s/%s: %w", secretNamespace, conn.SecretRef.Name, err)
+		}
 
-	// Get access key ID
-	accessKeyIDKey := conn.SecretRef.AccessKeyIDKey
-	if accessKeyIDKey == "" {
-		accessKeyIDKey = "accessKeyID"
-	}
-	accessKeyIDBytes, ok := secret.Data[accessKeyIDKey]
-	if !ok {
-		return nil, fmt.Errorf("access key ID not found in secret %s/%s with key %s", secretNamespace, conn.SecretRef.Name, accessKeyIDKey)
-	}
-	config.AccessKeyID = string(accessKeyIDBytes)
+		// Get access key ID
+		accessKeyIDKey := conn.SecretRef.AccessKeyIDKey
+		if accessKeyIDKey == "" {
+			accessKeyIDKey = "accessKeyID"
+		}
+		accessKeyIDBytes, ok := secret.Data[accessKeyIDKey]
+		if !ok {
+			return nil, fmt.Errorf("access key ID not found in secret %s/%s with key %s", secretNamespace, conn.SecretRef.Name, accessKeyIDKey)
+		}
+		config.AccessKeyID = string(accessKeyIDBytes)
 
-	// Get secret access key
-	secretAccessKeyKey := conn.SecretRef.SecretAccessKeyKey
-	if secretAccessKeyKey == "" {
-		secretAccessKeyKey = "secretAccessKey"
-	}
-	secretAccessKeyBytes, ok := secret.Data[secretAccessKeyKey]
-	if !ok {
-		return nil, fmt.Errorf("secret access key not found in secret %s/%s with key %s", secretNamespace, conn.SecretRef.Name, secretAccessKeyKey)
-	}
-	config.SecretAccessKey = string(secretAccessKeyBytes)
+		// Get secret access key
+		secretAccessKeyKey := conn.SecretRef.SecretAccessKeyKey
+		if secretAccessKeyKey == "" {
+			secretAccessKeyKey = "secretAccessKey"
+		}
+		secretAccessKeyBytes, ok := secret.Data[secretAccessKeyKey]
+		if !ok {
+			return nil, fmt.Errorf("secret access key not found in secret %s/%s with key %s", secretNamespace, conn.SecretRef.Name, secretAccessKeyKey)
+		}
+		config.SecretAccessKey = string(secretAccessKeyBytes)
 
-	// Apply TLS config from connection if specified
-	if conn.TLS != nil {
-		config.Insecure = conn.TLS.Insecure
+		// Apply TLS config from connection if specified
+		if conn.TLS != nil {
+			config.Insecure = conn.TLS.Insecure
+		}
 	}
 
 	return config, nil
