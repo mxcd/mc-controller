@@ -9,4 +9,21 @@ metadata:
     app.kubernetes.io/created-by: mc-controller
   name: endpoint-sample
 spec:
-  # TODO(user): Add fields here
+  url: "https://minio.example.com"
+  secretRef:
+    name: minio-credentials
+    accessKeyIDKey: "accessKeyID"
+    secretAccessKeyKey: "secretAccessKey"
+  tls:
+    insecure: false
+  healthCheck:
+    enabled: true
+    intervalSeconds: 300
+    timeoutSeconds: 30
+    failureThreshold: 3
+    successThreshold: 1
+  region: "us-east-1"
+  pathStyle: false
+  tags:
+    environment: "development"
+    team: "platform"

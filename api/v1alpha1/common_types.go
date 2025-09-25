@@ -91,7 +91,7 @@ type Condition struct {
 // SetCondition sets a condition on a list of conditions
 func SetCondition(conditions *[]Condition, conditionType ConditionType, status metav1.ConditionStatus, reason, message string) {
 	now := metav1.Now()
-	
+
 	for i, condition := range *conditions {
 		if condition.Type == conditionType {
 			if condition.Status != status {
@@ -107,13 +107,13 @@ func SetCondition(conditions *[]Condition, conditionType ConditionType, status m
 			return
 		}
 	}
-	
+
 	*conditions = append(*conditions, Condition{
 		Type:               conditionType,
-		Status:            status,
+		Status:             status,
 		LastTransitionTime: now,
-		Reason:            reason,
-		Message:           message,
+		Reason:             reason,
+		Message:            message,
 	})
 }
 

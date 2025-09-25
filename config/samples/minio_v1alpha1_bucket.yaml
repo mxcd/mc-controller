@@ -9,4 +9,19 @@ metadata:
     app.kubernetes.io/created-by: mc-controller
   name: bucket-sample
 spec:
-  # TODO(user): Add fields here
+  connection:
+    endpointRef:
+      name: endpoint-sample
+    secretRef:
+      name: minio-credentials
+      accessKeyIDKey: "accessKeyID"
+      secretAccessKeyKey: "secretAccessKey"
+  bucketName: "my-sample-bucket"
+  region: "us-east-1"
+  objectLocking: false
+  versioning: true
+  tags:
+    environment: "development"
+    project: "sample"
+  quota:
+    hard: 10737418240  # 10GB in bytes

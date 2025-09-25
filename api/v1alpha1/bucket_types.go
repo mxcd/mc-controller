@@ -29,28 +29,28 @@ const (
 type BucketSpec struct {
 	// Connection defines connection details to MinIO
 	Connection MinIOConnection `json:"connection"`
-	
+
 	// BucketName is the name of the bucket to create in MinIO
 	BucketName string `json:"bucketName"`
-	
+
 	// Region is the bucket region (optional)
 	Region *string `json:"region,omitempty"`
-	
+
 	// ObjectLocking enables object locking on the bucket
 	ObjectLocking bool `json:"objectLocking,omitempty"`
-	
+
 	// Versioning enables versioning on the bucket
 	Versioning bool `json:"versioning,omitempty"`
-	
+
 	// Retention defines the default retention settings
 	Retention *BucketRetention `json:"retention,omitempty"`
-	
+
 	// Notification defines event notification configuration
 	Notification *BucketNotification `json:"notification,omitempty"`
-	
+
 	// Tags are bucket tags
 	Tags map[string]string `json:"tags,omitempty"`
-	
+
 	// Quota defines storage quota for the bucket
 	Quota *BucketQuota `json:"quota,omitempty"`
 }
@@ -93,22 +93,22 @@ type BucketQuota struct {
 type BucketStatus struct {
 	// Conditions represent the latest available observations of the bucket's state
 	Conditions []Condition `json:"conditions,omitempty"`
-	
+
 	// Ready indicates if the bucket is ready
 	Ready bool `json:"ready"`
-	
+
 	// BucketName is the actual bucket name in MinIO
 	BucketName string `json:"bucketName,omitempty"`
-	
+
 	// Region is the bucket region
 	Region string `json:"region,omitempty"`
-	
+
 	// CreationDate is when the bucket was created
 	CreationDate *metav1.Time `json:"creationDate,omitempty"`
-	
+
 	// LastSyncTime is the last time the resource was synchronized
 	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
-	
+
 	// ObservedGeneration is the most recent generation observed by the controller
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }

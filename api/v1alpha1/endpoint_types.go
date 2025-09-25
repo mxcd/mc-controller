@@ -29,22 +29,22 @@ const (
 type EndpointSpec struct {
 	// URL is the MinIO server URL
 	URL string `json:"url"`
-	
+
 	// SecretRef contains credentials for connecting to MinIO
 	SecretRef SecretReference `json:"secretRef"`
-	
+
 	// TLS configuration
 	TLS *TLSConfig `json:"tls,omitempty"`
-	
+
 	// HealthCheck defines health check settings
 	HealthCheck *EndpointHealthCheck `json:"healthCheck,omitempty"`
-	
+
 	// Region is the default region for this endpoint
 	Region *string `json:"region,omitempty"`
-	
+
 	// PathStyle forces the use of path-style addressing
 	PathStyle bool `json:"pathStyle,omitempty"`
-	
+
 	// Tags are endpoint tags
 	Tags map[string]string `json:"tags,omitempty"`
 }
@@ -53,16 +53,16 @@ type EndpointSpec struct {
 type EndpointHealthCheck struct {
 	// Enabled indicates whether health checks are enabled
 	Enabled bool `json:"enabled"`
-	
+
 	// IntervalSeconds is the interval between health checks in seconds
 	IntervalSeconds *int32 `json:"intervalSeconds,omitempty"`
-	
+
 	// TimeoutSeconds is the timeout for health checks in seconds
 	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
-	
+
 	// FailureThreshold is the number of consecutive failures before marking unhealthy
 	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
-	
+
 	// SuccessThreshold is the number of consecutive successes before marking healthy
 	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
 }
@@ -71,31 +71,31 @@ type EndpointHealthCheck struct {
 type EndpointStatus struct {
 	// Conditions represent the latest available observations of the endpoint's state
 	Conditions []Condition `json:"conditions,omitempty"`
-	
+
 	// Ready indicates if the endpoint is ready
 	Ready bool `json:"ready"`
-	
+
 	// URL is the actual endpoint URL
 	URL string `json:"url,omitempty"`
-	
+
 	// Healthy indicates if the endpoint is healthy
 	Healthy bool `json:"healthy"`
-	
+
 	// LastHealthCheck is the timestamp of the last health check
 	LastHealthCheck *metav1.Time `json:"lastHealthCheck,omitempty"`
-	
+
 	// Version is the MinIO server version
 	Version string `json:"version,omitempty"`
-	
+
 	// Region is the endpoint region
 	Region string `json:"region,omitempty"`
-	
+
 	// ConnectedAt is when the connection was established
 	ConnectedAt *metav1.Time `json:"connectedAt,omitempty"`
-	
+
 	// LastSyncTime is the last time the resource was synchronized
 	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
-	
+
 	// ObservedGeneration is the most recent generation observed by the controller
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }

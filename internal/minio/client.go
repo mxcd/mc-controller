@@ -113,7 +113,7 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 		if conn.EndpointRef.Namespace != nil {
 			endpointNamespace = *conn.EndpointRef.Namespace
 		}
-		
+
 		err := k8sClient.Get(ctx, client.ObjectKey{
 			Name:      conn.EndpointRef.Name,
 			Namespace: endpointNamespace,
@@ -121,11 +121,11 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 		if err != nil {
 			return nil, fmt.Errorf("failed to get endpoint %s/%s: %w", endpointNamespace, conn.EndpointRef.Name, err)
 		}
-		
+
 		if !endpoint.Status.Ready {
 			return nil, fmt.Errorf("endpoint %s/%s is not ready", endpointNamespace, conn.EndpointRef.Name)
 		}
-		
+
 		config.Endpoint = endpoint.Spec.URL
 		if endpoint.Spec.PathStyle {
 			config.PathStyle = true
@@ -133,7 +133,7 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 		if endpoint.Spec.Region != nil {
 			config.Region = *endpoint.Spec.Region
 		}
-		
+
 		// Use TLS config from endpoint if specified
 		if endpoint.Spec.TLS != nil {
 			config.Insecure = endpoint.Spec.TLS.Insecure

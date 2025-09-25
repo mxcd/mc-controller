@@ -29,25 +29,25 @@ const (
 type UserSpec struct {
 	// Connection defines connection details to MinIO
 	Connection MinIOConnection `json:"connection"`
-	
+
 	// Username is the MinIO username
 	Username string `json:"username"`
-	
+
 	// SecretRef references a secret containing the user's password
 	SecretRef *SecretReference `json:"secretRef,omitempty"`
-	
+
 	// Password is the user's password (use SecretRef instead for security)
 	Password *string `json:"password,omitempty"`
-	
+
 	// Status is the user status (enabled/disabled)
 	Status UserStatusType `json:"status,omitempty"`
-	
+
 	// Groups is a list of groups the user belongs to
 	Groups []string `json:"groups,omitempty"`
-	
+
 	// Policies is a list of policies attached to the user
 	Policies []string `json:"policies,omitempty"`
-	
+
 	// Tags are user tags
 	Tags map[string]string `json:"tags,omitempty"`
 }
@@ -66,28 +66,28 @@ const (
 type UserStatus struct {
 	// Conditions represent the latest available observations of the user's state
 	Conditions []Condition `json:"conditions,omitempty"`
-	
+
 	// Ready indicates if the user is ready
 	Ready bool `json:"ready"`
-	
+
 	// Username is the actual username in MinIO
 	Username string `json:"username,omitempty"`
-	
+
 	// Status is the current user status
 	Status UserStatusType `json:"status,omitempty"`
-	
+
 	// Groups is the list of groups the user belongs to
 	Groups []string `json:"groups,omitempty"`
-	
+
 	// Policies is the list of policies attached to the user
 	Policies []string `json:"policies,omitempty"`
-	
+
 	// CreationDate is when the user was created
 	CreationDate *metav1.Time `json:"creationDate,omitempty"`
-	
+
 	// LastSyncTime is the last time the resource was synchronized
 	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
-	
+
 	// ObservedGeneration is the most recent generation observed by the controller
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }

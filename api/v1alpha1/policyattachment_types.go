@@ -29,10 +29,10 @@ const (
 type PolicyAttachmentSpec struct {
 	// Connection defines connection details to MinIO
 	Connection MinIOConnection `json:"connection"`
-	
+
 	// PolicyName is the name of the policy to attach
 	PolicyName string `json:"policyName"`
-	
+
 	// Target defines what the policy should be attached to
 	Target PolicyAttachmentTarget `json:"target"`
 }
@@ -41,10 +41,10 @@ type PolicyAttachmentSpec struct {
 type PolicyAttachmentTarget struct {
 	// User is the username to attach the policy to
 	User *string `json:"user,omitempty"`
-	
+
 	// Group is the group name to attach the policy to
 	Group *string `json:"group,omitempty"`
-	
+
 	// ServiceAccount is the service account to attach the policy to
 	ServiceAccount *string `json:"serviceAccount,omitempty"`
 }
@@ -53,22 +53,22 @@ type PolicyAttachmentTarget struct {
 type PolicyAttachmentStatus struct {
 	// Conditions represent the latest available observations of the policy attachment's state
 	Conditions []Condition `json:"conditions,omitempty"`
-	
+
 	// Ready indicates if the policy attachment is ready
 	Ready bool `json:"ready"`
-	
+
 	// PolicyName is the actual policy name in MinIO
 	PolicyName string `json:"policyName,omitempty"`
-	
+
 	// Target shows what the policy is attached to
 	Target string `json:"target,omitempty"`
-	
+
 	// AttachedAt is when the policy was attached
 	AttachedAt *metav1.Time `json:"attachedAt,omitempty"`
-	
+
 	// LastSyncTime is the last time the resource was synchronized
 	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
-	
+
 	// ObservedGeneration is the most recent generation observed by the controller
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }

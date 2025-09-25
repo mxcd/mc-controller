@@ -116,7 +116,7 @@ func (r *EndpointReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	endpoint.Status.Ready = true
 	endpoint.Status.URL = endpoint.Spec.URL
 	endpoint.Status.LastSyncTime = &metav1.Time{Time: time.Now()}
-	
+
 	if err := r.Status().Update(ctx, endpoint); err != nil {
 		logger.Error(err, "Failed to update status to ready")
 		return ctrl.Result{}, err

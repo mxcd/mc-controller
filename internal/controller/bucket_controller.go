@@ -109,7 +109,7 @@ func (r *BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	bucket.Status.Ready = true
 	bucket.Status.BucketName = bucket.Spec.BucketName
 	bucket.Status.LastSyncTime = &metav1.Time{Time: time.Now()}
-	
+
 	if err := r.Status().Update(ctx, bucket); err != nil {
 		logger.Error(err, "Failed to update status to ready")
 		return ctrl.Result{}, err

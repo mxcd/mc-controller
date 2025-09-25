@@ -30,16 +30,16 @@ const (
 type PolicySpec struct {
 	// Connection defines connection details to MinIO
 	Connection MinIOConnection `json:"connection"`
-	
+
 	// PolicyName is the name of the policy in MinIO
 	PolicyName string `json:"policyName"`
-	
+
 	// Policy is the IAM policy document in JSON format
 	Policy json.RawMessage `json:"policy"`
-	
+
 	// Description is the policy description
 	Description *string `json:"description,omitempty"`
-	
+
 	// Tags are policy tags
 	Tags map[string]string `json:"tags,omitempty"`
 }
@@ -48,22 +48,22 @@ type PolicySpec struct {
 type PolicyStatus struct {
 	// Conditions represent the latest available observations of the policy's state
 	Conditions []Condition `json:"conditions,omitempty"`
-	
+
 	// Ready indicates if the policy is ready
 	Ready bool `json:"ready"`
-	
+
 	// PolicyName is the actual policy name in MinIO
 	PolicyName string `json:"policyName,omitempty"`
-	
+
 	// PolicyHash is the hash of the policy document for comparison
 	PolicyHash string `json:"policyHash,omitempty"`
-	
+
 	// CreationDate is when the policy was created
 	CreationDate *metav1.Time `json:"creationDate,omitempty"`
-	
+
 	// LastSyncTime is the last time the resource was synchronized
 	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
-	
+
 	// ObservedGeneration is the most recent generation observed by the controller
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }

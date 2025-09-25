@@ -29,10 +29,10 @@ const (
 type LifecyclePolicySpec struct {
 	// Connection defines connection details to MinIO
 	Connection MinIOConnection `json:"connection"`
-	
+
 	// BucketName is the name of the bucket to apply the lifecycle policy to
 	BucketName string `json:"bucketName"`
-	
+
 	// Rules define the lifecycle rules
 	Rules []LifecycleRule `json:"rules"`
 }
@@ -41,25 +41,25 @@ type LifecyclePolicySpec struct {
 type LifecycleRule struct {
 	// ID is the unique identifier for the rule
 	ID string `json:"id"`
-	
+
 	// Status indicates whether the rule is enabled or disabled
 	Status LifecycleRuleStatus `json:"status"`
-	
+
 	// Filter defines the filter for objects to apply the rule to
 	Filter *LifecycleFilter `json:"filter,omitempty"`
-	
+
 	// Expiration defines when objects expire
 	Expiration *LifecycleExpiration `json:"expiration,omitempty"`
-	
+
 	// NoncurrentVersionExpiration defines when non-current versions expire
 	NoncurrentVersionExpiration *NoncurrentVersionExpiration `json:"noncurrentVersionExpiration,omitempty"`
-	
+
 	// AbortIncompleteMultipartUpload defines when to abort incomplete multipart uploads
 	AbortIncompleteMultipartUpload *AbortIncompleteMultipartUpload `json:"abortIncompleteMultipartUpload,omitempty"`
-	
+
 	// Transitions define storage class transitions
 	Transitions []LifecycleTransition `json:"transitions,omitempty"`
-	
+
 	// NoncurrentVersionTransitions define transitions for non-current versions
 	NoncurrentVersionTransitions []NoncurrentVersionTransition `json:"noncurrentVersionTransitions,omitempty"`
 }
@@ -78,10 +78,10 @@ const (
 type LifecycleFilter struct {
 	// Prefix is the object key prefix
 	Prefix *string `json:"prefix,omitempty"`
-	
+
 	// Tags is a list of tags to match
 	Tags map[string]string `json:"tags,omitempty"`
-	
+
 	// And allows combining multiple filters
 	And *LifecycleFilterAnd `json:"and,omitempty"`
 }
@@ -90,7 +90,7 @@ type LifecycleFilter struct {
 type LifecycleFilterAnd struct {
 	// Prefix is the object key prefix
 	Prefix *string `json:"prefix,omitempty"`
-	
+
 	// Tags is a list of tags to match
 	Tags map[string]string `json:"tags,omitempty"`
 }
@@ -99,10 +99,10 @@ type LifecycleFilterAnd struct {
 type LifecycleExpiration struct {
 	// Days is the number of days after creation when objects expire
 	Days *int `json:"days,omitempty"`
-	
+
 	// Date is the expiration date
 	Date *metav1.Time `json:"date,omitempty"`
-	
+
 	// ExpiredObjectDeleteMarker indicates whether to remove delete markers
 	ExpiredObjectDeleteMarker *bool `json:"expiredObjectDeleteMarker,omitempty"`
 }
@@ -123,10 +123,10 @@ type AbortIncompleteMultipartUpload struct {
 type LifecycleTransition struct {
 	// Days is the number of days after creation when objects transition
 	Days *int `json:"days,omitempty"`
-	
+
 	// Date is the transition date
 	Date *metav1.Time `json:"date,omitempty"`
-	
+
 	// StorageClass is the storage class to transition to
 	StorageClass string `json:"storageClass"`
 }
@@ -135,7 +135,7 @@ type LifecycleTransition struct {
 type NoncurrentVersionTransition struct {
 	// NoncurrentDays is the number of days after becoming non-current when versions transition
 	NoncurrentDays int `json:"noncurrentDays"`
-	
+
 	// StorageClass is the storage class to transition to
 	StorageClass string `json:"storageClass"`
 }
@@ -144,22 +144,22 @@ type NoncurrentVersionTransition struct {
 type LifecyclePolicyStatus struct {
 	// Conditions represent the latest available observations of the lifecycle policy's state
 	Conditions []Condition `json:"conditions,omitempty"`
-	
+
 	// Ready indicates if the lifecycle policy is ready
 	Ready bool `json:"ready"`
-	
+
 	// BucketName is the actual bucket name in MinIO
 	BucketName string `json:"bucketName,omitempty"`
-	
+
 	// PolicyHash is the hash of the policy for comparison
 	PolicyHash string `json:"policyHash,omitempty"`
-	
+
 	// AppliedAt is when the policy was applied
 	AppliedAt *metav1.Time `json:"appliedAt,omitempty"`
-	
+
 	// LastSyncTime is the last time the resource was synchronized
 	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
-	
+
 	// ObservedGeneration is the most recent generation observed by the controller
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
