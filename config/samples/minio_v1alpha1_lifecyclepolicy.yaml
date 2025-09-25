@@ -1,0 +1,12 @@
+apiVersion: minio.mxcd.dev/v1alpha1
+kind: LifecyclePolicy
+metadata:
+  labels:
+    app.kubernetes.io/name: lifecyclepolicy
+    app.kubernetes.io/instance: lifecyclepolicy-sample
+    app.kubernetes.io/part-of: mc-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: mc-controller
+  name: lifecyclepolicy-sample
+spec:
+  # TODO(user): Add fields here
