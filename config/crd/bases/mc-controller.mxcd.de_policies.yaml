@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: policies.minio.mxcd.dev
+  name: policies.mc-controller.mxcd.de
 spec:
-  group: minio.mxcd.dev
+  group: mc-controller.mxcd.de
   names:
     kind: Policy
     listKind: PolicyList

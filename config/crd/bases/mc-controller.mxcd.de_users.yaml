@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: users.minio.mxcd.dev
+  name: users.mc-controller.mxcd.de
 spec:
-  group: minio.mxcd.dev
+  group: mc-controller.mxcd.de
   names:
     kind: User
     listKind: UserList

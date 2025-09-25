@@ -39,9 +39,9 @@ type AliasReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=aliases,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=aliases/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=aliases/finalizers,verbs=update
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=aliases,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=aliases/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=aliases/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

@@ -33,9 +33,9 @@ type LifecyclePolicyReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=lifecyclepolicies,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=lifecyclepolicies/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=lifecyclepolicies/finalizers,verbs=update
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=lifecyclepolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=lifecyclepolicies/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=lifecyclepolicies/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

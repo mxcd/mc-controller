@@ -22,7 +22,7 @@ import (
 
 const (
 	// PolicyAttachmentFinalizer is the finalizer for PolicyAttachment resources
-	PolicyAttachmentFinalizer = "policyattachment.minio.mxcd.dev/finalizer"
+	PolicyAttachmentFinalizer = "policyattachment.mc-controller.mxcd.de/finalizer"
 )
 
 // PolicyAttachmentSpec defines the desired state of PolicyAttachment

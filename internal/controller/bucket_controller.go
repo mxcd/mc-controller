@@ -40,10 +40,10 @@ type BucketReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=buckets,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=buckets/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=buckets/finalizers,verbs=update
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=endpoints,verbs=get;list;watch
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=buckets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=buckets/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=buckets/finalizers,verbs=update
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=endpoints,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

@@ -22,7 +22,7 @@ import (
 
 const (
 	// BucketFinalizer is the finalizer for Bucket resources
-	BucketFinalizer = "bucket.minio.mxcd.dev/finalizer"
+	BucketFinalizer = "bucket.mc-controller.mxcd.de/finalizer"
 )
 
 // BucketSpec defines the desired state of Bucket

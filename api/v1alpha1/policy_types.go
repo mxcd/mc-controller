@@ -23,7 +23,7 @@ import (
 
 const (
 	// PolicyFinalizer is the finalizer for Policy resources
-	PolicyFinalizer = "policy.minio.mxcd.dev/finalizer"
+	PolicyFinalizer = "policy.mc-controller.mxcd.de/finalizer"
 )
 
 // PolicySpec defines the desired state of Policy

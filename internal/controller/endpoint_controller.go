@@ -39,9 +39,9 @@ type EndpointReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=endpoints,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=endpoints/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=minio.mxcd.dev,resources=endpoints/finalizers,verbs=update
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=endpoints,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=endpoints/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=mc-controller.mxcd.de,resources=endpoints/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

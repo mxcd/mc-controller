@@ -22,7 +22,7 @@ import (
 
 const (
 	// AliasFinalizer is the finalizer for Alias resources
-	AliasFinalizer = "alias.minio.mxcd.dev/finalizer"
+	AliasFinalizer = "alias.mc-controller.mxcd.de/finalizer"
 )
 
 // AliasSpec defines the desired state of Alias

@@ -22,7 +22,7 @@ import (
 
 const (
 	// EndpointFinalizer is the finalizer for Endpoint resources
-	EndpointFinalizer = "endpoint.minio.mxcd.dev/finalizer"
+	EndpointFinalizer = "endpoint.mc-controller.mxcd.de/finalizer"
 )
 
 // EndpointSpec defines the desired state of Endpoint

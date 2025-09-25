@@ -22,7 +22,7 @@ import (
 
 const (
 	// UserFinalizer is the finalizer for User resources
-	UserFinalizer = "user.minio.mxcd.dev/finalizer"
+	UserFinalizer = "user.mc-controller.mxcd.de/finalizer"
 )
 
 // UserSpec defines the desired state of User

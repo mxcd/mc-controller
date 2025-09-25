@@ -1,4 +1,4 @@
-apiVersion: minio.mxcd.dev/v1alpha1
+apiVersion: mc-controller.mxcd.de/v1alpha1
 kind: LifecyclePolicy
 metadata:
   labels:

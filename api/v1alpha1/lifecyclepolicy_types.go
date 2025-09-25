@@ -22,7 +22,7 @@ import (
 
 const (
 	// LifecyclePolicyFinalizer is the finalizer for LifecyclePolicy resources
-	LifecyclePolicyFinalizer = "lifecyclepolicy.minio.mxcd.dev/finalizer"
+	LifecyclePolicyFinalizer = "lifecyclepolicy.mc-controller.mxcd.de/finalizer"
 )
 
 // LifecyclePolicySpec defines the desired state of LifecyclePolicy

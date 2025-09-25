@@ -4,16 +4,16 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: aliases.minio.mxcd.dev
+  name: endpoints.mc-controller.mxcd.de
 spec:
-  group: minio.mxcd.dev
+  group: mc-controller.mxcd.de
   names:
-    kind: Alias
-    listKind: AliasList
-    plural: aliases
+    kind: Endpoint
+    listKind: EndpointList
+    plural: endpoints
     shortNames:
-    - minioalias
-    singular: alias
+    - minioendpoint
+    singular: endpoint
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -35,7 +35,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Alias is the Schema for the aliases API
+        description: Endpoint is the Schema for the endpoints API
         properties:
           apiVersion:
             description: |-
@@ -55,11 +55,8 @@ spec:
           metadata:
             type: object
           spec:
-            description: AliasSpec defines the desired state of Alias
+            description: EndpointSpec defines the desired state of Endpoint
             properties:
-              description:
-                description: Description is a human-readable description of the alias
-                type: string
               healthCheck:
                 description: HealthCheck defines health check settings
                 properties:
@@ -93,7 +90,7 @@ spec:
                 description: PathStyle forces the use of path-style addressing
                 type: boolean
               region:
-                description: Region is the default region for this alias
+                description: Region is the default region for this endpoint
                 type: string
               secretRef:
                 description: SecretRef contains credentials for connecting to MinIO
@@ -118,7 +115,7 @@ spec:
               tags:
                 additionalProperties:
                   type: string
-                description: Tags are alias tags
+                description: Tags are endpoint tags
                 type: object
               tls:
                 description: TLS configuration
@@ -141,11 +138,11 @@ spec:
             - url
             type: object
           status:
-            description: AliasStatus defines the observed state of Alias
+            description: EndpointStatus defines the observed state of Endpoint
             properties:
               conditions:
                 description: Conditions represent the latest available observations
-                  of the alias's state
+                  of the endpoint's state
                 items:
                   description: Condition represents the condition of a resource
                   properties:
@@ -178,7 +175,7 @@ spec:
                 format: date-time
                 type: string
               healthy:
-                description: Healthy indicates if the alias is healthy
+                description: Healthy indicates if the endpoint is healthy
                 type: boolean
               lastHealthCheck:
                 description: LastHealthCheck is the timestamp of the last health check
@@ -194,13 +191,13 @@ spec:
                 format: int64
                 type: integer
               ready:
-                description: Ready indicates if the alias is ready
+                description: Ready indicates if the endpoint is ready
                 type: boolean
               region:
-                description: Region is the alias region
+                description: Region is the endpoint region
                 type: string
               url:
-                description: URL is the actual alias URL
+                description: URL is the actual endpoint URL
                 type: string
               version:
                 description: Version is the MinIO server version

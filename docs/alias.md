@@ -23,7 +23,7 @@ The Alias CRD allows you to:
 ### Basic Alias
 
 ```yaml
-apiVersion: minio.mxcd.dev/v1alpha1
+apiVersion: mc-controller.mxcd.de/v1alpha1
 kind: Alias
 metadata:
   name: minio-production
@@ -39,7 +39,7 @@ spec:
 ### Alias with Health Checks
 
 ```yaml
-apiVersion: minio.mxcd.dev/v1alpha1
+apiVersion: mc-controller.mxcd.de/v1alpha1
 kind: Alias
 metadata:
   name: minio-dev
@@ -63,7 +63,7 @@ spec:
 Once an alias is defined, other resources can reference it:
 
 ```yaml
-apiVersion: minio.mxcd.dev/v1alpha1
+apiVersion: mc-controller.mxcd.de/v1alpha1
 kind: Bucket
 metadata:
   name: my-bucket
