@@ -17,29 +17,63 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+const (
+	// PolicyFinalizer is the finalizer for Policy resources
+	PolicyFinalizer = "policy.minio.mxcd.dev/finalizer"
+)
 
 // PolicySpec defines the desired state of Policy
 type PolicySpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Policy. Edit policy_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Connection defines connection details to MinIO
+	Connection MinIOConnection `json:"connection"`
+	
+	// PolicyName is the name of the policy in MinIO
+	PolicyName string `json:"policyName"`
+	
+	// Policy is the IAM policy document in JSON format
+	Policy json.RawMessage `json:"policy"`
+	
+	// Description is the policy description
+	Description *string `json:"description,omitempty"`
+	
+	// Tags are policy tags
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // PolicyStatus defines the observed state of Policy
 type PolicyStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions represent the latest available observations of the policy's state
+	Conditions []Condition `json:"conditions,omitempty"`
+	
+	// Ready indicates if the policy is ready
+	Ready bool `json:"ready"`
+	
+	// PolicyName is the actual policy name in MinIO
+	PolicyName string `json:"policyName,omitempty"`
+	
+	// PolicyHash is the hash of the policy document for comparison
+	PolicyHash string `json:"policyHash,omitempty"`
+	
+	// CreationDate is when the policy was created
+	CreationDate *metav1.Time `json:"creationDate,omitempty"`
+	
+	// LastSyncTime is the last time the resource was synchronized
+	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
+	
+	// ObservedGeneration is the most recent generation observed by the controller
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:shortName=miniopolicy
+//+kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready"
+//+kubebuilder:printcolumn:name="Policy Name",type="string",JSONPath=".status.policyName"
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // Policy is the Schema for the policies API
 type Policy struct {

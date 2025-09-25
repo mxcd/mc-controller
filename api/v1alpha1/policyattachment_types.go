@@ -20,26 +20,66 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+const (
+	// PolicyAttachmentFinalizer is the finalizer for PolicyAttachment resources
+	PolicyAttachmentFinalizer = "policyattachment.minio.mxcd.dev/finalizer"
+)
 
 // PolicyAttachmentSpec defines the desired state of PolicyAttachment
 type PolicyAttachmentSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Connection defines connection details to MinIO
+	Connection MinIOConnection `json:"connection"`
+	
+	// PolicyName is the name of the policy to attach
+	PolicyName string `json:"policyName"`
+	
+	// Target defines what the policy should be attached to
+	Target PolicyAttachmentTarget `json:"target"`
+}
 
-	// Foo is an example field of PolicyAttachment. Edit policyattachment_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+// PolicyAttachmentTarget defines the target for policy attachment
+type PolicyAttachmentTarget struct {
+	// User is the username to attach the policy to
+	User *string `json:"user,omitempty"`
+	
+	// Group is the group name to attach the policy to
+	Group *string `json:"group,omitempty"`
+	
+	// ServiceAccount is the service account to attach the policy to
+	ServiceAccount *string `json:"serviceAccount,omitempty"`
 }
 
 // PolicyAttachmentStatus defines the observed state of PolicyAttachment
 type PolicyAttachmentStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions represent the latest available observations of the policy attachment's state
+	Conditions []Condition `json:"conditions,omitempty"`
+	
+	// Ready indicates if the policy attachment is ready
+	Ready bool `json:"ready"`
+	
+	// PolicyName is the actual policy name in MinIO
+	PolicyName string `json:"policyName,omitempty"`
+	
+	// Target shows what the policy is attached to
+	Target string `json:"target,omitempty"`
+	
+	// AttachedAt is when the policy was attached
+	AttachedAt *metav1.Time `json:"attachedAt,omitempty"`
+	
+	// LastSyncTime is the last time the resource was synchronized
+	LastSyncTime *metav1.Time `json:"lastSyncTime,omitempty"`
+	
+	// ObservedGeneration is the most recent generation observed by the controller
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:shortName=policyattach
+//+kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready"
+//+kubebuilder:printcolumn:name="Policy",type="string",JSONPath=".status.policyName"
+//+kubebuilder:printcolumn:name="Target",type="string",JSONPath=".status.target"
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // PolicyAttachment is the Schema for the policyattachments API
 type PolicyAttachment struct {

@@ -1,15 +1,170 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: manager-role
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: mc-controller
-    app.kubernetes.io/part-of: mc-controller
-    app.kubernetes.io/managed-by: kustomize
   name: manager-role
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - buckets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - buckets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - buckets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - endpoints/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - endpoints/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - lifecyclepolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - lifecyclepolicies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - lifecyclepolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - policies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - policies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - policies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - policyattachments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - policyattachments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - policyattachments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - users
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - users/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - minio.mxcd.dev
+  resources:
+  - users/status
+  verbs:
+  - get
+  - patch
+  - update

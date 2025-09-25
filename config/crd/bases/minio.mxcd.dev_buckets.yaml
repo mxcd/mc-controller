@@ -1,0 +1,250 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: buckets.minio.mxcd.dev
+spec:
+  group: minio.mxcd.dev
+  names:
+    kind: Bucket
+    listKind: BucketList
+    plural: buckets
+    shortNames:
+    - bucket
+    singular: bucket
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.ready
+      name: Ready
+      type: boolean
+    - jsonPath: .status.bucketName
+      name: Bucket Name
+      type: string
+    - jsonPath: .status.region
+      name: Region
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Bucket is the Schema for the buckets API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BucketSpec defines the desired state of Bucket
+            properties:
+              bucketName:
+                description: BucketName is the name of the bucket to create in MinIO
+                type: string
+              connection:
+                description: Connection defines connection details to MinIO
+                properties:
+                  endpointRef:
+                    description: EndpointRef references an Endpoint resource for connection
+                      details
+                    properties:
+                      name:
+                        description: Name is the name of the Endpoint resource
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the Endpoint resource
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  secretRef:
+                    description: SecretRef contains credentials for connecting to
+                      MinIO
+                    properties:
+                      accessKeyIDKey:
+                        description: AccessKeyIDKey is the key in the secret containing
+                          the access key ID
+                        type: string
+                      name:
+                        description: Name is the name of the secret
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the secret
+                        type: string
+                      secretAccessKeyKey:
+                        description: SecretAccessKeyKey is the key in the secret containing
+                          the secret access key
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  tls:
+                    description: TLS configuration
+                    properties:
+                      caBundle:
+                        description: CABundle is a PEM encoded CA bundle which will
+                          be used to validate the server certificate
+                        format: byte
+                        type: string
+                      insecure:
+                        description: Insecure allows connections to MinIO using TLS
+                          without certs validation
+                        type: boolean
+                    type: object
+                  url:
+                    description: URL is the MinIO server URL (alternative to EndpointRef)
+                    type: string
+                required:
+                - secretRef
+                type: object
+              notification:
+                description: Notification defines event notification configuration
+                properties:
+                  events:
+                    description: Events is a list of events to notify on
+                    items:
+                      type: string
+                    type: array
+                  filterPrefix:
+                    description: FilterPrefix is the object key name prefix
+                    type: string
+                  filterSuffix:
+                    description: FilterSuffix is the object key name suffix
+                    type: string
+                  lambdaFunction:
+                    description: LambdaFunction is the notification target lambda
+                      function ARN
+                    type: string
+                  queue:
+                    description: Queue is the notification target queue ARN
+                    type: string
+                  topic:
+                    description: Topic is the notification target topic ARN
+                    type: string
+                required:
+                - events
+                type: object
+              objectLocking:
+                description: ObjectLocking enables object locking on the bucket
+                type: boolean
+              quota:
+                description: Quota defines storage quota for the bucket
+                properties:
+                  hard:
+                    description: Hard is the hard quota limit in bytes
+                    format: int64
+                    type: integer
+                type: object
+              region:
+                description: Region is the bucket region (optional)
+                type: string
+              retention:
+                description: Retention defines the default retention settings
+                properties:
+                  days:
+                    description: Days is the retention period in days
+                    type: integer
+                  mode:
+                    description: Mode is the retention mode (GOVERNANCE or COMPLIANCE)
+                    type: string
+                  retainUntilDate:
+                    description: RetainUntilDate is the retention date
+                    format: date-time
+                    type: string
+                  years:
+                    description: Years is the retention period in years
+                    type: integer
+                required:
+                - mode
+                type: object
+              tags:
+                additionalProperties:
+                  type: string
+                description: Tags are bucket tags
+                type: object
+              versioning:
+                description: Versioning enables versioning on the bucket
+                type: boolean
+            required:
+            - bucketName
+            - connection
+            type: object
+          status:
+            description: BucketStatus defines the observed state of Bucket
+            properties:
+              bucketName:
+                description: BucketName is the actual bucket name in MinIO
+                type: string
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the bucket's state
+                items:
+                  description: Condition represents the condition of a resource
+                  properties:
+                    lastTransitionTime:
+                      description: LastTransitionTime is the last time the condition
+                        transitioned
+                      format: date-time
+                      type: string
+                    message:
+                      description: Message is a human-readable message indicating
+                        details about the transition
+                      type: string
+                    reason:
+                      description: Reason is a unique, one-word, CamelCase reason
+                        for the condition's last transition
+                      type: string
+                    status:
+                      description: Status is the status of the condition
+                      type: string
+                    type:
+                      description: Type is the type of the condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+              creationDate:
+                description: CreationDate is when the bucket was created
+                format: date-time
+                type: string
+              lastSyncTime:
+                description: LastSyncTime is the last time the resource was synchronized
+                format: date-time
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the most recent generation observed
+                  by the controller
+                format: int64
+                type: integer
+              ready:
+                description: Ready indicates if the bucket is ready
+                type: boolean
+              region:
+                description: Region is the bucket region
+                type: string
+            required:
+            - ready
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
