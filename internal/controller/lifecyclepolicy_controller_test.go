@@ -51,7 +51,24 @@ var _ = Describe("LifecyclePolicy Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: miniov1alpha1.LifecyclePolicySpec{
+						Connection: miniov1alpha1.MinIOConnection{
+							URL: &[]string{"http://localhost:9000"}[0],
+							SecretRef: &miniov1alpha1.SecretReference{
+								Name: "minio-secret",
+							},
+						},
+						BucketName: "test-bucket",
+						Rules: []miniov1alpha1.LifecycleRule{
+							{
+								ID:     "test-rule",
+								Status: miniov1alpha1.LifecycleRuleStatusEnabled,
+								Expiration: &miniov1alpha1.LifecycleExpiration{
+									Days: &[]int{30}[0],
+								},
+							},
+						},
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
