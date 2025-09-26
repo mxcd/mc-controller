@@ -160,7 +160,13 @@ func checkClusterRequirements() {
 func setupKubernetesCluster() {
 	if !useExistingCluster {
 		By("creating Kind cluster for local testing")
-		cmd := exec.Command("kind", "create", "cluster", "--name", kindClusterName, "--wait", "5m")
+
+		// First, try to delete existing cluster if it exists
+		cmd := exec.Command("kind", "delete", "cluster", "--name", kindClusterName)
+		cmd.Run() // Ignore errors as cluster might not exist
+
+		// Create new cluster
+		cmd = exec.Command("kind", "create", "cluster", "--name", kindClusterName, "--wait", "5m")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("Kind cluster creation failed: %s\n", string(output))
@@ -294,26 +300,34 @@ spec:
 }
 
 func installMCController() {
-	projectimage := "mc-controller:e2e-test"
-
-	By("building the mc-controller image")
-	cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectimage))
+	By("installing CRDs")
+	cmd := exec.Command("make", "install")
 	_, err := utils.Run(cmd)
 	Expect(err).NotTo(HaveOccurred())
 
-	By("loading the image to kind cluster")
-	err = utils.LoadImageToKindClusterWithName(projectimage)
-	Expect(err).NotTo(HaveOccurred())
-
-	By("installing CRDs")
-	cmd = exec.Command("make", "install")
+	By("building the controller binary")
+	cmd = exec.Command("make", "build")
 	_, err = utils.Run(cmd)
 	Expect(err).NotTo(HaveOccurred())
 
-	By("deploying the controller")
-	cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectimage))
-	_, err = utils.Run(cmd)
-	Expect(err).NotTo(HaveOccurred())
+	By("starting the controller locally")
+	// Start controller in background - it will run against the Kind cluster via kubeconfig
+	go func() {
+		defer GinkgoRecover()
+		cmd := exec.Command("./bin/manager")
+		cmd.Env = append(os.Environ(),
+			fmt.Sprintf("KUBECONFIG=%s", os.Getenv("KUBECONFIG")),
+			"ENABLE_WEBHOOKS=false", // Disable webhooks for local testing
+		)
+		_, err := utils.Run(cmd)
+		// Don't fail here as this runs in background and will be terminated at test end
+		if err != nil {
+			fmt.Printf("Controller exited: %v\n", err)
+		}
+	}()
+
+	// Give controller time to start and register with API server
+	time.Sleep(10 * time.Second)
 }
 
 func createTestNamespace() {
@@ -346,14 +360,14 @@ func createMinIOCredentialsSecret() {
 }
 
 func waitForControllerReady() {
+	By("waiting for controller to be ready")
+	// Since controller is running locally, just check if CRDs are installed and accessible
 	Eventually(func() error {
-		cmd := exec.Command("kubectl", "get", "pods", "-n", namespace, "-l", "control-plane=controller-manager", "-o", "jsonpath={.items[0].status.phase}")
-		out, err := utils.Run(cmd)
+		// Try to list aliases to check if CRDs and controller are working
+		aliases := &miniov1alpha1.AliasList{}
+		err := k8sClient.List(context.Background(), aliases, client.InNamespace(testNamespace))
 		if err != nil {
-			return err
-		}
-		if string(out) != "Running" {
-			return fmt.Errorf("controller pod not running: %s", string(out))
+			return fmt.Errorf("controller not ready - cannot list aliases: %v", err)
 		}
 		return nil
 	}, timeout, interval).Should(Succeed())

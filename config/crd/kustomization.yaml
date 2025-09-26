@@ -1,0 +1,44 @@
+# Adds namespace to all resources.
+#namespace: mc-controller-system
+
+# Value of this field is prepended to the
+# names of all resources, e.g. a deployment named
+# "wordpress" becomes "alices-wordpress".
+# Note that it should also match with the prefix (text before '-') of the namespace
+# field above.
+namePrefix: mc-controller-
+
+# Labels to add to all resources and selectors.
+#commonLabels:
+#  someName: someValue
+
+resources:
+- bases/mc-controller.mxcd.de_aliases.yaml
+- bases/mc-controller.mxcd.de_buckets.yaml
+- bases/mc-controller.mxcd.de_endpoints.yaml
+- bases/mc-controller.mxcd.de_lifecyclepolicies.yaml
+- bases/mc-controller.mxcd.de_policies.yaml
+- bases/mc-controller.mxcd.de_policyattachments.yaml
+- bases/mc-controller.mxcd.de_users.yaml
+
+# [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
+# crd/kustomization.yaml
+# [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER' prefix.
+# patches:
+# [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER' prefix.
+# Uncomment 'CERTMANAGER' sections in crd/kustomization.yaml to enable the CA injection in the admission webhooks.
+# 'CERTMANAGER' needs to be enabled to use ca injection
+# [CERTMANAGER] uncomment the following lines to enable the CA injection in the admission webhooks
+# patchesStrategicMerge:
+# - patches/webhook_in_aliases.yaml
+# - patches/webhook_in_buckets.yaml
+# - patches/webhook_in_endpoints.yaml
+# - patches/webhook_in_lifecyclepolicies.yaml
+# - patches/webhook_in_policies.yaml
+# - patches/webhook_in_policyattachments.yaml
+# - patches/webhook_in_users.yaml
+
+# the following config is for teaching kustomize how to do var substitution
+# [CERTMANAGER] uncomment the following lines to enable cert-manager
+# configurations:
+# - kustomizeconfig.yaml
