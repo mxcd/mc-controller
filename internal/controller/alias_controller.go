@@ -166,7 +166,10 @@ func (r *AliasReconciler) reconcileAlias(ctx context.Context, alias *miniov1alph
 		logger.Error(err, "Failed to get server info")
 		// Don't fail reconciliation for this
 	} else {
-		alias.Status.Version = serverInfo.MinioVersion
+		// Get version from the first server
+		if len(serverInfo.Servers) > 0 {
+			alias.Status.Version = serverInfo.Servers[0].Version
+		}
 		if alias.Spec.Region != nil {
 			alias.Status.Region = *alias.Spec.Region
 		}

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/tags"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -224,17 +225,11 @@ func (r *BucketReconciler) reconcileBucket(ctx context.Context, bucket *miniov1a
 
 	// Set bucket tags if specified
 	if len(bucket.Spec.Tags) > 0 {
-		tags, err := minio.NewTags()
+		bucketTags, err := tags.MapToBucketTags(bucket.Spec.Tags)
 		if err != nil {
 			return ctrl.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to create tags: %w", err)
 		}
-		for key, value := range bucket.Spec.Tags {
-			err = tags.Set(key, value)
-			if err != nil {
-				return ctrl.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to set tag %s: %w", key, err)
-			}
-		}
-		err = minioClient.S3.SetBucketTagging(ctx, bucket.Spec.BucketName, tags)
+		err = minioClient.S3.SetBucketTagging(ctx, bucket.Spec.BucketName, bucketTags)
 		if err != nil {
 			return ctrl.Result{RequeueAfter: time.Minute}, fmt.Errorf("failed to set bucket tags: %w", err)
 		}

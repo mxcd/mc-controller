@@ -83,7 +83,7 @@ func (r *EndpointReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Create a temporary connection config for health checking
 	conn := miniov1alpha1.MinIOConnection{
 		URL:       &endpoint.Spec.URL,
-		SecretRef: endpoint.Spec.SecretRef,
+		SecretRef: &endpoint.Spec.SecretRef,
 		TLS:       endpoint.Spec.TLS,
 	}
 
@@ -166,7 +166,10 @@ func (r *EndpointReconciler) reconcileEndpoint(ctx context.Context, endpoint *mi
 		logger.Error(err, "Failed to get server info")
 		// Don't fail reconciliation for this
 	} else {
-		endpoint.Status.Version = serverInfo.MinioVersion
+		// Get version from the first server
+		if len(serverInfo.Servers) > 0 {
+			endpoint.Status.Version = serverInfo.Servers[0].Version
+		}
 		if endpoint.Spec.Region != nil {
 			endpoint.Status.Region = *endpoint.Spec.Region
 		}

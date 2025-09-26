@@ -163,7 +163,7 @@ func (r *UserReconciler) reconcileUser(ctx context.Context, user *miniov1alpha1.
 	}
 
 	// Check if user exists
-	userInfo, err := minioClient.Admin.GetUserInfo(ctx, user.Spec.Username)
+	_, err = minioClient.Admin.GetUserInfo(ctx, user.Spec.Username)
 	userExists := err == nil
 
 	if !userExists {

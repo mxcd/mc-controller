@@ -216,7 +216,7 @@ spec:
 `
 	cmd = exec.Command("kubectl", "apply", "-f", "-")
 	cmd.Stdin = strings.NewReader(minioManifest)
-	_, err := utils.Run(cmd)
+	_, err = utils.Run(cmd)
 	Expect(err).NotTo(HaveOccurred())
 
 	By("waiting for MinIO to be ready")
