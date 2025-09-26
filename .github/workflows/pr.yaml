@@ -1,0 +1,86 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: make test
+
+    - name: Run lint
+      run: make lint
+
+    - name: Generate manifests and verify no changes
+      run: |
+        make generate manifests
+        git diff --exit-code || (echo "Generated files are not up to date. Please run 'make generate manifests' and commit the changes." && exit 1)
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies with timeout
+      run: |
+        timeout 10m go mod download || (echo "go mod download timed out" && exit 1)
+
+    - name: Create Kind cluster
+      uses: helm/kind-action@v1
+      with:
+        cluster_name: mc-controller-e2e
+        kubectl_version: v1.28.0
+
+    - name: Install kubebuilder
+      run: |
+        curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.14.0/kubebuilder_linux_amd64
+        chmod +x kubebuilder
+        sudo mv kubebuilder /usr/local/bin/
+
+    - name: Run E2E tests
+      run: |
+        make test-e2e
+      env:
+        USE_EXISTING_CLUSTER: true
+      timeout-minutes: 45
