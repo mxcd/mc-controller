@@ -1,0 +1,12 @@
+apiVersion: mc-controller.mxcd.de/v1alpha1
+kind: User
+metadata:
+  labels:
+    app.kubernetes.io/name: user
+    app.kubernetes.io/instance: user-sample
+    app.kubernetes.io/part-of: mc-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: mc-controller
+  name: user-sample
+spec:
+  # TODO(user): Add fields here

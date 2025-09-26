@@ -1,0 +1,30 @@
+apiVersion: mc-controller.mxcd.de/v1alpha1
+kind: Alias
+metadata:
+  labels:
+    app.kubernetes.io/name: alias
+    app.kubernetes.io/instance: alias-sample
+    app.kubernetes.io/part-of: mc-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: mc-controller
+  name: minio-dev
+spec:
+  url: "https://minio.example.com"
+  secretRef:
+    name: minio-credentials
+    accessKeyIDKey: "accessKeyID"
+    secretAccessKeyKey: "secretAccessKey"
+  tls:
+    insecure: false
+  healthCheck:
+    enabled: true
+    intervalSeconds: 300
+    timeoutSeconds: 30
+    failureThreshold: 3
+    successThreshold: 1
+  region: "us-east-1"
+  pathStyle: false
+  description: "Development MinIO instance"
+  tags:
+    environment: "development"
+    team: "platform"

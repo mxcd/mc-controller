@@ -1,0 +1,196 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - buckets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - buckets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - buckets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - endpoints/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - endpoints/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - lifecyclepolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - lifecyclepolicies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - lifecyclepolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policyattachments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policyattachments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policyattachments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - users
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - users/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - users/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -1,0 +1,245 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: users.mc-controller.mxcd.de
+spec:
+  group: mc-controller.mxcd.de
+  names:
+    kind: User
+    listKind: UserList
+    plural: users
+    shortNames:
+    - miniouser
+    singular: user
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.ready
+      name: Ready
+      type: boolean
+    - jsonPath: .status.username
+      name: Username
+      type: string
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: User is the Schema for the users API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: UserSpec defines the desired state of User
+            properties:
+              connection:
+                description: Connection defines connection details to MinIO
+                properties:
+                  aliasRef:
+                    description: AliasRef references an Alias resource for connection
+                      details
+                    properties:
+                      name:
+                        description: Name is the name of the Alias resource
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the Alias resource
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  endpointRef:
+                    description: EndpointRef references an Endpoint resource for connection
+                      details (deprecated, use aliasRef)
+                    properties:
+                      name:
+                        description: Name is the name of the Endpoint resource
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the Endpoint resource
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  secretRef:
+                    description: SecretRef contains credentials for connecting to
+                      MinIO (only used with URL)
+                    properties:
+                      accessKeyIDKey:
+                        description: AccessKeyIDKey is the key in the secret containing
+                          the access key ID
+                        type: string
+                      name:
+                        description: Name is the name of the secret
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the secret
+                        type: string
+                      secretAccessKeyKey:
+                        description: SecretAccessKeyKey is the key in the secret containing
+                          the secret access key
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  tls:
+                    description: TLS configuration (only used with URL)
+                    properties:
+                      caBundle:
+                        description: CABundle is a PEM encoded CA bundle which will
+                          be used to validate the server certificate
+                        format: byte
+                        type: string
+                      insecure:
+                        description: Insecure allows connections to MinIO using TLS
+                          without certs validation
+                        type: boolean
+                    type: object
+                  url:
+                    description: URL is the MinIO server URL (alternative to AliasRef/EndpointRef)
+                    type: string
+                type: object
+              groups:
+                description: Groups is a list of groups the user belongs to
+                items:
+                  type: string
+                type: array
+              password:
+                description: Password is the user's password (use SecretRef instead
+                  for security)
+                type: string
+              policies:
+                description: Policies is a list of policies attached to the user
+                items:
+                  type: string
+                type: array
+              secretRef:
+                description: SecretRef references a secret containing the user's password
+                properties:
+                  accessKeyIDKey:
+                    description: AccessKeyIDKey is the key in the secret containing
+                      the access key ID
+                    type: string
+                  name:
+                    description: Name is the name of the secret
+                    type: string
+                  namespace:
+                    description: Namespace is the namespace of the secret
+                    type: string
+                  secretAccessKeyKey:
+                    description: SecretAccessKeyKey is the key in the secret containing
+                      the secret access key
+                    type: string
+                required:
+                - name
+                type: object
+              status:
+                description: Status is the user status (enabled/disabled)
+                type: string
+              tags:
+                additionalProperties:
+                  type: string
+                description: Tags are user tags
+                type: object
+              username:
+                description: Username is the MinIO username
+                type: string
+            required:
+            - connection
+            - username
+            type: object
+          status:
+            description: UserStatus defines the observed state of User
+            properties:
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the user's state
+                items:
+                  description: Condition represents the condition of a resource
+                  properties:
+                    lastTransitionTime:
+                      description: LastTransitionTime is the last time the condition
+                        transitioned
+                      format: date-time
+                      type: string
+                    message:
+                      description: Message is a human-readable message indicating
+                        details about the transition
+                      type: string
+                    reason:
+                      description: Reason is a unique, one-word, CamelCase reason
+                        for the condition's last transition
+                      type: string
+                    status:
+                      description: Status is the status of the condition
+                      type: string
+                    type:
+                      description: Type is the type of the condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+              creationDate:
+                description: CreationDate is when the user was created
+                format: date-time
+                type: string
+              groups:
+                description: Groups is the list of groups the user belongs to
+                items:
+                  type: string
+                type: array
+              lastSyncTime:
+                description: LastSyncTime is the last time the resource was synchronized
+                format: date-time
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the most recent generation observed
+                  by the controller
+                format: int64
+                type: integer
+              policies:
+                description: Policies is the list of policies attached to the user
+                items:
+                  type: string
+                type: array
+              ready:
+                description: Ready indicates if the user is ready
+                type: boolean
+              status:
+                description: Status is the current user status
+                type: string
+              username:
+                description: Username is the actual username in MinIO
+                type: string
+            required:
+            - ready
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

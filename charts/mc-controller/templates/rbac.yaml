@@ -1,0 +1,273 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "mc-controller.fullname" . }}-manager-role
+  labels:
+    {{- include "mc-controller.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - buckets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - buckets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - buckets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - endpoints/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - endpoints/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - lifecyclepolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - lifecyclepolicies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - lifecyclepolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policyattachments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policyattachments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - policyattachments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - users
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - users/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - users/status
+  verbs:
+  - get
+  - patch
+  - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "mc-controller.fullname" . }}-manager-rolebinding
+  labels:
+    {{- include "mc-controller.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "mc-controller.fullname" . }}-manager-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "mc-controller.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "mc-controller.fullname" . }}-leader-election-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mc-controller.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "mc-controller.fullname" . }}-leader-election-rolebinding
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mc-controller.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "mc-controller.fullname" . }}-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "mc-controller.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}

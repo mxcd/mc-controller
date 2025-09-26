@@ -1,0 +1,105 @@
+# Default values for mc-controller
+replicaCount: 1
+
+image:
+  repository: ghcr.io/mxcd/mc-controller
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65532
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Webhook configuration
+webhook:
+  enabled: false
+  port: 9443
+  certManager:
+    enabled: true
+
+# Metrics configuration
+metrics:
+  enabled: true
+  port: 8080
+  serviceMonitor:
+    enabled: false
+    additionalLabels: {}
+
+# Health probe configuration
+health:
+  port: 8081
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Leader election configuration
+leaderElection:
+  enabled: true
+
+# Log level
+logLevel: info
+
+# Additional environment variables
+env: []
+  # - name: EXAMPLE_VAR
+  #   value: "example-value"
+
+# Additional volumes
+volumes: []
+  # - name: example-volume
+  #   configMap:
+  #     name: example-configmap
+
+# Additional volume mounts
+volumeMounts: []
+  # - name: example-volume
+  #   mountPath: /example
+  #   readOnly: true

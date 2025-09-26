@@ -1,0 +1,29 @@
+apiVersion: mc-controller.mxcd.de/v1alpha1
+kind: Endpoint
+metadata:
+  labels:
+    app.kubernetes.io/name: endpoint
+    app.kubernetes.io/instance: endpoint-sample
+    app.kubernetes.io/part-of: mc-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: mc-controller
+  name: endpoint-sample
+spec:
+  url: "https://minio.example.com"
+  secretRef:
+    name: minio-credentials
+    accessKeyIDKey: "accessKeyID"
+    secretAccessKeyKey: "secretAccessKey"
+  tls:
+    insecure: false
+  healthCheck:
+    enabled: true
+    intervalSeconds: 300
+    timeoutSeconds: 30
+    failureThreshold: 3
+    successThreshold: 1
+  region: "us-east-1"
+  pathStyle: false
+  tags:
+    environment: "development"
+    team: "platform"

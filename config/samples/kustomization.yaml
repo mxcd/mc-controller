@@ -1,0 +1,9 @@
+## Append samples of your project ##
+resources:
+- minio_v1alpha1_bucket.yaml
+- minio_v1alpha1_policy.yaml
+- minio_v1alpha1_lifecyclepolicy.yaml
+- minio_v1alpha1_policyattachment.yaml
+- minio_v1alpha1_endpoint.yaml
+- minio_v1alpha1_alias.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

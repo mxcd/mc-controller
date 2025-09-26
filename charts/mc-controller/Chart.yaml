@@ -1,0 +1,20 @@
+apiVersion: v2
+name: mc-controller
+description: A Kubernetes operator for managing MinIO resources
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/mxcd/mc-controller
+sources:
+  - https://github.com/mxcd/mc-controller
+maintainers:
+  - name: mxcd
+    url: https://github.com/mxcd
+keywords:
+  - minio
+  - s3
+  - object-storage
+  - kubernetes
+  - operator
+annotations:
+  category: Storage

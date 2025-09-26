@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies with timeout
+      run: |
+        timeout 10m go mod download || (echo "go mod download timed out" && exit 1)
+
+    - name: Run tests
+      run: make test
+
+    - name: Run lint
+      run: make lint
+
+    - name: Generate manifests and verify no changes
+      run: |
+        make generate manifests
+        git diff --exit-code || (echo "Generated files are not up to date. Please run 'make generate manifests' and commit the changes." && exit 1)
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies with timeout
+      run: |
+        timeout 10m go mod download || (echo "go mod download timed out" && exit 1)
+
+    - name: Create Kind cluster
+      uses: helm/kind-action@v1
+      with:
+        cluster_name: mc-controller-e2e
+        kubectl_version: v1.28.0
+
+    - name: Install kubebuilder
+      run: |
+        curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.14.0/kubebuilder_linux_amd64
+        chmod +x kubebuilder
+        sudo mv kubebuilder /usr/local/bin/
+
+    - name: Run E2E tests
+      run: |
+        make test-e2e
+      env:
+        USE_EXISTING_CLUSTER: true
+      timeout-minutes: 45
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [test, e2e-test]
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-url: ${{ steps.build.outputs.image-url }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        platforms: linux/amd64,linux/arm64
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push=true
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [test, e2e-test, build-and-push]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: '3.14.0'
+
+    - name: Generate release manifests
+      run: |
+        make manifests
+        mkdir -p release
+        cp -r config/crd/bases release/
+        cp -r config/rbac release/
+        cp -r config/manager release/
+        cp -r config/samples release/
+
+    - name: Create release archive
+      run: |
+        tar -czf mc-controller-manifests-${{ github.ref_name }}.tar.gz -C release .
+
+    - name: Package Helm chart
+      run: |
+        # Update chart version to match release tag
+        export CHART_VERSION="${{ github.ref_name }}"
+        export APP_VERSION="${{ github.ref_name }}"
+        
+        # Remove 'v' prefix if present
+        CHART_VERSION=${CHART_VERSION#v}
+        APP_VERSION=${APP_VERSION#v}
+        
+        # Update Chart.yaml
+        sed -i "s/version: .*/version: ${CHART_VERSION}/" charts/mc-controller/Chart.yaml
+        sed -i "s/appVersion: .*/appVersion: \"${APP_VERSION}\"/" charts/mc-controller/Chart.yaml
+        
+        # Package the chart
+        helm package charts/mc-controller --destination ./helm-charts/
+        
+        # Create index
+        helm repo index ./helm-charts/ --url https://github.com/mxcd/mc-controller/releases/download/${{ github.ref_name }}/
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Simple changelog generation
+        echo "## Changes in ${{ github.ref_name }}" > CHANGELOG.md
+        git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> CHANGELOG.md || echo "- Initial release" >> CHANGELOG.md
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: CHANGELOG.md
+        files: |
+          mc-controller-manifests-${{ github.ref_name }}.tar.gz
+          helm-charts/*.tgz
+          helm-charts/index.yaml
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
