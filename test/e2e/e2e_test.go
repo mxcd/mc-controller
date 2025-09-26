@@ -19,6 +19,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -51,14 +53,24 @@ const (
 )
 
 var (
-	k8sClient   client.Client
-	minioClient *minio.Client
-	adminClient *madmin.AdminClient
-	kubeClient  kubernetes.Interface
+	k8sClient          client.Client
+	cfg                *rest.Config
+	ctx                = context.Background()
+	minioClient        *minio.Client
+	adminClient        *madmin.AdminClient
+	kubeClient         kubernetes.Interface
+	kindClusterName    = "mc-controller-e2e"
+	useExistingCluster bool
 )
 
 var _ = Describe("MC Controller E2E Tests", Ordered, func() {
 	BeforeAll(func() {
+		By("checking cluster setup requirements")
+		checkClusterRequirements()
+
+		By("setting up or creating Kubernetes cluster")
+		setupKubernetesCluster()
+
 		By("setting up the test environment")
 		setupTestEnvironment()
 
@@ -90,6 +102,9 @@ var _ = Describe("MC Controller E2E Tests", Ordered, func() {
 
 		By("uninstalling MinIO")
 		uninstallMinIO()
+
+		By("cleaning up Kubernetes cluster")
+		cleanupKubernetesCluster()
 	})
 
 	Context("Alias CRD", func() {
@@ -129,11 +144,49 @@ var _ = Describe("MC Controller E2E Tests", Ordered, func() {
 	})
 })
 
+func checkClusterRequirements() {
+	// Check if we should use an existing cluster (CI environment)
+	useExistingCluster = os.Getenv("USE_EXISTING_CLUSTER") == "true"
+
+	if !useExistingCluster {
+		// Check if kind is available for local testing
+		cmd := exec.Command("kind", "version")
+		if err := cmd.Run(); err != nil {
+			Fail("Kind is not installed. Please install Kind for local E2E testing or set USE_EXISTING_CLUSTER=true")
+		}
+	}
+}
+
+func setupKubernetesCluster() {
+	if !useExistingCluster {
+		By("creating Kind cluster for local testing")
+		cmd := exec.Command("kind", "create", "cluster", "--name", kindClusterName, "--wait", "5m")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("Kind cluster creation failed: %s\n", string(output))
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		// Set KUBECONFIG for the created cluster
+		homeDir, _ := os.UserHomeDir()
+		kubeconfig := fmt.Sprintf("%s/.kube/config", homeDir)
+		os.Setenv("KUBECONFIG", kubeconfig)
+	}
+}
+
+func cleanupKubernetesCluster() {
+	if !useExistingCluster {
+		By("deleting Kind cluster")
+		cmd := exec.Command("kind", "delete", "cluster", "--name", kindClusterName)
+		_, _ = cmd.CombinedOutput() // Ignore errors during cleanup
+	}
+}
+
 func setupTestEnvironment() {
 	var err error
 
 	// Get Kubernetes config
-	cfg, err := config.GetConfig()
+	cfg, err = config.GetConfig()
 	Expect(err).NotTo(HaveOccurred())
 
 	// Create scheme with our CRDs
