@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"encoding/json"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,8 +33,8 @@ type PolicySpec struct {
 	// PolicyName is the name of the policy in MinIO
 	PolicyName string `json:"policyName"`
 
-	// Policy is the IAM policy document in JSON format
-	Policy json.RawMessage `json:"policy"`
+	// Policy is the IAM policy document in JSON format (base64 encoded when stored)
+	Policy []byte `json:"policy"`
 
 	// Description is the policy description
 	Description *string `json:"description,omitempty"`

@@ -21,7 +21,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"encoding/json"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -1201,7 +1200,7 @@ func (in *PolicySpec) DeepCopyInto(out *PolicySpec) {
 	in.Connection.DeepCopyInto(&out.Connection)
 	if in.Policy != nil {
 		in, out := &in.Policy, &out.Policy
-		*out = make(json.RawMessage, len(*in))
+		*out = make([]byte, len(*in))
 		copy(*out, *in)
 	}
 	if in.Description != nil {

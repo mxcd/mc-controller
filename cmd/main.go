@@ -150,6 +150,20 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Alias")
 		os.Exit(1)
 	}
+	if err = (&controller.PolicyReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Policy")
+		os.Exit(1)
+	}
+	if err = (&controller.PolicyAttachmentReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "PolicyAttachment")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

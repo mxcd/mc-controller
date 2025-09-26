@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"time"
-	
+
 	"github.com/minio/madmin-go/v3"
 )
 

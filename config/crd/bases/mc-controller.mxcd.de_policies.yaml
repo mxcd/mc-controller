@@ -122,7 +122,8 @@ spec:
                 description: Description is the policy description
                 type: string
               policy:
-                description: Policy is the IAM policy document in JSON format
+                description: Policy is the IAM policy document in JSON format (base64
+                  encoded when stored)
                 format: byte
                 type: string
               policyName:

@@ -27,6 +27,25 @@ rules:
 - apiGroups:
   - mc-controller.mxcd.de
   resources:
+  - aliases
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
+  - aliases
+  - endpoints
+  - users
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mc-controller.mxcd.de
+  resources:
   - aliases/finalizers
   verbs:
   - update

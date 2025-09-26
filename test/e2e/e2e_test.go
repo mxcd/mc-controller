@@ -599,7 +599,7 @@ func testUserCRD() {
 	By("verifying user exists in MinIO")
 	userInfo, err := adminClient.GetUserInfo(context.Background(), userName)
 	Expect(err).NotTo(HaveOccurred())
-	Expect(userInfo.Status).To(Equal("enabled"))
+	Expect(userInfo.Status).To(Equal(madmin.AccountEnabled))
 
 	By("cleaning up User")
 	err = k8sClient.Delete(context.Background(), user)
@@ -673,6 +673,7 @@ func testPolicyCRD() {
 			Policy:     []byte(policyDocument),
 		},
 	}
+	// (debug removed)
 	err = k8sClient.Create(context.Background(), policy)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -700,11 +701,179 @@ func testPolicyCRD() {
 }
 
 func testPolicyAttachmentCRD() {
-	// This test would be similar to the above tests
-	// but would test policy attachment functionality
-	// Skipping detailed implementation for brevity
-	By("policy attachment test - placeholder")
-	Expect(true).To(BeTrue())
+	aliasName := "attach-alias"
+	policyName := "attach-policy"
+	policyCRDName := "attach-policy-crd"
+	userName := "attach-user"
+	userCRDName := "attach-user-crd"
+	userSecretName := "attach-user-secret"
+
+	By("creating an Alias for policy attachment test")
+	alias := &miniov1alpha1.Alias{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      aliasName,
+			Namespace: testNamespace,
+		},
+		Spec: miniov1alpha1.AliasSpec{
+			URL: fmt.Sprintf("http://%s", minioURL),
+			SecretRef: miniov1alpha1.SecretReference{
+				Name: "minio-credentials",
+			},
+		},
+	}
+	err := k8sClient.Create(context.Background(), alias)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("waiting for Alias to be ready")
+	Eventually(func() bool {
+		err := k8sClient.Get(context.Background(), client.ObjectKey{Name: aliasName, Namespace: testNamespace}, alias)
+		if err != nil {
+			return false
+		}
+		return alias.Status.Ready
+	}, timeout, interval).Should(BeTrue())
+
+	By("creating a Policy for attachment")
+	policyDocument := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Action": ["s3:ListAllMyBuckets"],
+				"Resource": ["arn:aws:s3:::*"]
+			}
+		]
+	}`
+	policy := &miniov1alpha1.Policy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      policyCRDName,
+			Namespace: testNamespace,
+		},
+		Spec: miniov1alpha1.PolicySpec{
+			Connection: miniov1alpha1.MinIOConnection{
+				AliasRef: &miniov1alpha1.AliasReference{
+					Name: aliasName,
+				},
+			},
+			PolicyName: policyName,
+			Policy:     []byte(policyDocument),
+		},
+	}
+	err = k8sClient.Create(context.Background(), policy)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("waiting for Policy to be ready")
+	Eventually(func() bool {
+		err := k8sClient.Get(context.Background(), client.ObjectKey{Name: policyCRDName, Namespace: testNamespace}, policy)
+		if err != nil {
+			return false
+		}
+		return policy.Status.Ready
+	}, timeout, interval).Should(BeTrue())
+
+	By("creating user password secret")
+	userSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      userSecretName,
+			Namespace: testNamespace,
+		},
+		Data: map[string][]byte{
+			"password": []byte("attach-user-password"),
+		},
+	}
+	err = k8sClient.Create(context.Background(), userSecret)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("creating a User to attach the policy to")
+	user := &miniov1alpha1.User{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      userCRDName,
+			Namespace: testNamespace,
+		},
+		Spec: miniov1alpha1.UserSpec{
+			Connection: miniov1alpha1.MinIOConnection{
+				AliasRef: &miniov1alpha1.AliasReference{
+					Name: aliasName,
+				},
+			},
+			Username: userName,
+			SecretRef: &miniov1alpha1.SecretReference{
+				Name:               userSecretName,
+				SecretAccessKeyKey: "password",
+			},
+			Status: miniov1alpha1.UserStatusEnabled,
+		},
+	}
+	err = k8sClient.Create(context.Background(), user)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("waiting for User to be ready")
+	Eventually(func() bool {
+		err := k8sClient.Get(context.Background(), client.ObjectKey{Name: userCRDName, Namespace: testNamespace}, user)
+		if err != nil {
+			return false
+		}
+		return user.Status.Ready
+	}, timeout, interval).Should(BeTrue())
+
+	By("creating a PolicyAttachment")
+	targetUser := userName
+	attachment := &miniov1alpha1.PolicyAttachment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "attach-policyattachment",
+			Namespace: testNamespace,
+		},
+		Spec: miniov1alpha1.PolicyAttachmentSpec{
+			Connection: miniov1alpha1.MinIOConnection{
+				AliasRef: &miniov1alpha1.AliasReference{
+					Name: aliasName,
+				},
+			},
+			PolicyName: policyName,
+			Target: miniov1alpha1.PolicyAttachmentTarget{
+				User: &targetUser,
+			},
+		},
+	}
+	err = k8sClient.Create(context.Background(), attachment)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("waiting for PolicyAttachment to be ready")
+	Eventually(func() bool {
+		err := k8sClient.Get(context.Background(), client.ObjectKey{Name: attachment.Name, Namespace: testNamespace}, attachment)
+		if err != nil {
+			return false
+		}
+		return attachment.Status.Ready
+	}, timeout, interval).Should(BeTrue())
+
+	By("verifying policy is attached to user")
+	Eventually(func() bool {
+		info, err := adminClient.GetUserInfo(context.Background(), userName)
+		if err != nil {
+			return false
+		}
+		return info.PolicyName == policyName
+	}, timeout, interval).Should(BeTrue())
+
+	By("deleting PolicyAttachment")
+	err = k8sClient.Delete(context.Background(), attachment)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("verifying policy is detached from user")
+	Eventually(func() bool {
+		info, err := adminClient.GetUserInfo(context.Background(), userName)
+		if err != nil {
+			return false
+		}
+		return info.PolicyName == ""
+	}, timeout, interval).Should(BeTrue())
+
+	By("cleaning up user, policy, alias, secret")
+	k8sClient.Delete(context.Background(), user)
+	k8sClient.Delete(context.Background(), policy)
+	k8sClient.Delete(context.Background(), alias)
+	k8sClient.Delete(context.Background(), userSecret)
 }
 
 func testLifecyclePolicyCRD() {
