@@ -21,6 +21,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/minio/madmin-go/v3"
 	"github.com/minio/minio-go/v7"
@@ -97,6 +99,35 @@ func NewClient(ctx context.Context, k8sClient client.Client, conn miniov1alpha1.
 	}, nil
 }
 
+// parseEndpointURL parses a URL and returns the endpoint (host:port) and SSL setting
+func parseEndpointURL(rawURL string) (endpoint string, useSSL bool, err error) {
+	// Handle case where URL might already be just host:port
+	if !strings.Contains(rawURL, "://") {
+		return rawURL, true, nil // Default to SSL for plain host:port
+	}
+
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", false, fmt.Errorf("failed to parse URL %s: %w", rawURL, err)
+	}
+
+	// Extract host:port
+	endpoint = parsedURL.Host
+	if endpoint == "" {
+		return "", false, fmt.Errorf("no host found in URL %s", rawURL)
+	}
+
+	// Determine SSL based on scheme
+	useSSL = parsedURL.Scheme == "https"
+
+	// Validate that there's no path component (MinIO client doesn't support paths)
+	if parsedURL.Path != "" && parsedURL.Path != "/" {
+		return "", false, fmt.Errorf("endpoint URL cannot have paths: %s", parsedURL.Path)
+	}
+
+	return endpoint, useSSL, nil
+}
+
 // buildClientConfig builds client configuration from connection spec
 func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov1alpha1.MinIOConnection, defaultNamespace string) (*ClientConfig, error) {
 	config := &ClientConfig{
@@ -124,7 +155,14 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 			return nil, fmt.Errorf("alias %s/%s is not ready", aliasNamespace, conn.AliasRef.Name)
 		}
 
-		config.Endpoint = alias.Spec.URL
+		// Parse the URL to extract endpoint and SSL setting
+		endpoint, useSSL, err := parseEndpointURL(alias.Spec.URL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse alias URL: %w", err)
+		}
+		config.Endpoint = endpoint
+		config.UseSSL = useSSL
+
 		if alias.Spec.PathStyle {
 			config.PathStyle = true
 		}
@@ -175,7 +213,13 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 		config.SecretAccessKey = string(secretAccessKeyBytes)
 
 	} else if conn.URL != nil {
-		config.Endpoint = *conn.URL
+		// Parse the URL to extract endpoint and SSL setting
+		endpoint, useSSL, err := parseEndpointURL(*conn.URL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse connection URL: %w", err)
+		}
+		config.Endpoint = endpoint
+		config.UseSSL = useSSL
 	} else if conn.EndpointRef != nil {
 		endpoint := &miniov1alpha1.Endpoint{}
 		endpointNamespace := defaultNamespace
@@ -195,7 +239,14 @@ func buildClientConfig(ctx context.Context, k8sClient client.Client, conn miniov
 			return nil, fmt.Errorf("endpoint %s/%s is not ready", endpointNamespace, conn.EndpointRef.Name)
 		}
 
-		config.Endpoint = endpoint.Spec.URL
+		// Parse the URL to extract endpoint and SSL setting
+		endpointHost, useSSL, err := parseEndpointURL(endpoint.Spec.URL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse endpoint URL: %w", err)
+		}
+		config.Endpoint = endpointHost
+		config.UseSSL = useSSL
+
 		if endpoint.Spec.PathStyle {
 			config.PathStyle = true
 		}
