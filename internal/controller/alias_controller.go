@@ -76,6 +76,10 @@ func (r *AliasReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	miniov1alpha1.SetCondition(&alias.Status.Conditions, miniov1alpha1.ConditionProgressing, metav1.ConditionTrue, "Reconciling", "Reconciling alias")
 	alias.Status.ObservedGeneration = alias.Generation
 	if err := r.Status().Update(ctx, alias); err != nil {
+		if apierrors.IsConflict(err) {
+			// Resource was modified, requeue to try again
+			return ctrl.Result{RequeueAfter: time.Second}, nil
+		}
 		logger.Error(err, "Failed to update status")
 		return ctrl.Result{}, err
 	}
@@ -118,6 +122,9 @@ func (r *AliasReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	alias.Status.LastSyncTime = &metav1.Time{Time: time.Now()}
 
 	if err := r.Status().Update(ctx, alias); err != nil {
+		if apierrors.IsConflict(err) {
+			return ctrl.Result{RequeueAfter: time.Second}, nil
+		}
 		logger.Error(err, "Failed to update status to ready")
 		return ctrl.Result{}, err
 	}
